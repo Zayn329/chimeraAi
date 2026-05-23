@@ -1,0 +1,551 @@
+{
+    "semester": 3,
+    "teaching_scheme": [
+        {
+            "course_code": "25COPCC301",
+            "course_name": "Data Structures",
+            "theory": 2,
+            "practical": 0,
+            "credits": 2
+        },
+        {
+            "course_code": "25COPCC302",
+            "course_name": "Database Management System",
+            "theory": 3,
+            "practical": 0,
+            "credits": 3
+        },
+        {
+            "course_code": "25COPCC303",
+            "course_name": "Digital Logic & Computer Architecture",
+            "theory": 2,
+            "practical": 0,
+            "credits": 2
+        },
+        {
+            "course_code": "25COSEC301",
+            "course_name": "Statistical Maths",
+            "theory": 3,
+            "practical": 0,
+            "credits": 3
+        },
+        {
+            "course_code": "25COSEC302",
+            "course_name": "Problem Solving & Aptitude Building 1",
+            "theory": 2,
+            "practical": 0,
+            "credits": 2
+        },
+        {
+            "course_code": "25COMDC301",
+            "course_name": "Multidisciplinary Course I",
+            "theory": 2,
+            "practical": 0,
+            "credits": 2
+        },
+        {
+            "course_code": "25AE302X",
+            "course_name": "Modern Language",
+            "theory": 2,
+            "practical": 0,
+            "credits": 2
+        },
+        {
+            "course_code": "25AE303",
+            "course_name": "Entrepreneurship Development",
+            "theory": 2,
+            "practical": 0,
+            "credits": 2
+        },
+        {
+            "course_code": "25COPCL301",
+            "course_name": "Data Structures Lab",
+            "theory": 0,
+            "practical": 4,
+            "credits": 2
+        },
+        {
+            "course_code": "25COPCL302",
+            "course_name": "Database Management System Lab",
+            "theory": 0,
+            "practical": 2,
+            "credits": 1
+        },
+        {
+            "course_code": "25COPCL303",
+            "course_name": "Java Programming Lab / OOP Lab II",
+            "theory": 0,
+            "practical": 2,
+            "credits": 1
+        }
+    ],
+    "evaluation_scheme": {
+        "total_marks": 765,
+        "internal_assessment": 470,
+        "external_assessment": 295
+    },
+    "courses": [
+        {
+            "course_code": "25COPCC301",
+            "course_name": "Data Structures",
+            "course_objectives": [
+                "Understand the significance of data structures in the field of computer science and their role in efficient problem-solving.",
+                "Explore various linear and nonlinear data structures and searching techniques.",
+                "Select appropriate data structures based on the nature of a given real-world problem."
+            ],
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Differentiate between linear and non-linear data structures and apply basic operations such as searching, insertion, deletion, and traversal on stacks and queues."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Perform various operations like searching, insertion, deletion and traversals on Linked List."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Apply tree data structure to solve hierarchical and real-world problems."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Utilize the graph data structure to solve problems in various domains."
+                },
+                {
+                    "co": "CO5",
+                    "description": "Select and apply suitable searching techniques to solve computational problems."
+                }
+            ],
+            "modules": [
+                {
+                    "module_no": 1,
+                    "title": "Introduction, Stack and Queues",
+                    "hrs": 9
+                },
+                {
+                    "module_no": 2,
+                    "title": "Linked List",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 3,
+                    "title": "Trees",
+                    "hrs": 10
+                },
+                {
+                    "module_no": 4,
+                    "title": "Graph",
+                    "hrs": 4
+                },
+                {
+                    "module_no": 5,
+                    "title": "Searching",
+                    "hrs": 4
+                }
+            ]
+        },
+        {
+            "course_code": "25COPCC302",
+            "course_name": "Database Management System",
+            "course_objectives": [
+                "Understand the fundamental concepts of database systems and their architecture.",
+                "Explore relational models and use relational algebra/calculus to formulate queries.",
+                "Gain proficiency in SQL for data definition, manipulation, and control.",
+                "Design normalized relational schemas based on real-world requirements.",
+                "Analyze and evaluate advanced database topics such as indexing, transactions, concurrency control, and security."
+            ],
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Analyze the architecture, components, data models, and advantages of database management systems."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Apply relational algebra to formulate database queries."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Construct and execute SQL queries for data definition and manipulation."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Design normalized relational schemas from conceptual models."
+                },
+                {
+                    "co": "CO5",
+                    "description": "Analyze indexing strategies, transaction mechanisms, and database security."
+                }
+            ],
+            "modules": [
+                {
+                    "module_no": 1,
+                    "title": "Introduction to Databases and DBMS",
+                    "hrs": 8
+                },
+                {
+                    "module_no": 2,
+                    "title": "Database Design",
+                    "hrs": 9
+                },
+                {
+                    "module_no": 3,
+                    "title": "Relational Database Model",
+                    "hrs": 8
+                },
+                {
+                    "module_no": 4,
+                    "title": "SQL - Structured Query Language",
+                    "hrs": 8
+                },
+                {
+                    "module_no": 5,
+                    "title": "Advanced Topics in DBMS",
+                    "hrs": 9
+                }
+            ]
+        },
+        {
+            "course_code": "25COPCC303",
+            "course_name": "Digital Logic & Computer Architecture",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Calculating the conversions of different number systems and basic structure of computer systems."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Illustrating the arithmetic algorithms and understating the data representation."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Articulating the basic concepts of digital components and processor organization."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Exploring the concept of memory organization."
+                },
+                {
+                    "co": "CO5",
+                    "description": "Examining the concepts of parallel processing and Buses."
+                }
+            ],
+            "modules": [
+                {
+                    "module_no": 1,
+                    "title": "Computer Fundamentals",
+                    "hrs": 8
+                },
+                {
+                    "module_no": 2,
+                    "title": "Data Representation and Arithmetic algorithms",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 3,
+                    "title": "Processor Organization and Architecture",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 4,
+                    "title": "Memory Organization",
+                    "hrs": 5
+                },
+                {
+                    "module_no": 5,
+                    "title": "Parallel Processing and Buses",
+                    "hrs": 3
+                }
+            ]
+        },
+        {
+            "course_code": "25COSEC301",
+            "course_name": "Statistical Mathematics",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Apply the concept of eigen values and eigen vectors to solve engineering problems."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Apply the concept of Correlation and Regression to solve engineering problems."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Apply the concepts of Probability and expectations for getting the spread of the data and use standard distribution functions."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Apply the concept of hypothesis testing and parametric and non parametric test to solve engineering problems"
+                }
+            ],
+            "modules": [
+                {
+                    "module_no": 1,
+                    "title": "Linear Algebra: Matrix Theory",
+                    "hrs": 7
+                },
+                {
+                    "module_no": 2,
+                    "title": "Statistical Techniques",
+                    "hrs": 7
+                },
+                {
+                    "module_no": 3,
+                    "title": "Probability",
+                    "hrs": 7
+                },
+                {
+                    "module_no": 4,
+                    "title": "Probability distributions",
+                    "hrs": 7
+                },
+                {
+                    "module_no": 5,
+                    "title": "Sampling Theory I",
+                    "hrs": 8
+                },
+                {
+                    "module_no": 6,
+                    "title": "Chi square test",
+                    "hrs": 6
+                }
+            ]
+        },
+        {
+            "course_code": "25COSEC302",
+            "course_name": "Problem Solving and Aptitude Building I",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Apply arithmetic concepts for solving real-life and placement problems."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Solve questions related to ratios, percentages, and time-based problems."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Apply algebraic concepts to solve equations and inequalities."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Demonstrate logical reasoning ability in pattern-based problems."
+                },
+                {
+                    "co": "CO5",
+                    "description": "Analyze and interpret basic reasoning scenarios with structured techniques."
+                }
+            ],
+            "modules": [
+                {
+                    "module_no": 1,
+                    "title": "Number Systems & Arithmetic Basics",
+                    "hrs": 5
+                },
+                {
+                    "module_no": 2,
+                    "title": "Percentages, Profit & Loss",
+                    "hrs": 5
+                },
+                {
+                    "module_no": 3,
+                    "title": "Time & Work, Speed & Distance",
+                    "hrs": 5
+                },
+                {
+                    "module_no": 4,
+                    "title": "Algebra and Linear Equations",
+                    "hrs": 5
+                },
+                {
+                    "module_no": 5,
+                    "title": "Introduction to Logical Reasoning",
+                    "hrs": 6
+                }
+            ]
+        },
+        {
+            "course_code": "25COMDC301",
+            "course_name": "Multidisciplinary Course I (Design Thinking)",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Explain the philosophy, mindset, and stages of design thinking."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Describe frameworks used for customer empathy and defining problems."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Use ideation tools and creativity methods for generating solutions."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Evaluate different approaches to prototyping and solution testing."
+                },
+                {
+                    "co": "CO5",
+                    "description": "Analyze how storytelling and visualization aid design thinking."
+                }
+            ],
+            "modules": [
+                {
+                    "module_no": 1,
+                    "title": "Introduction to Design Thinking",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 2,
+                    "title": "Empathy and Problem Framing",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 3,
+                    "title": "Ideation and Creative Thinking",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 4,
+                    "title": "Prototyping and Testing Strategies",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 5,
+                    "title": "Visualization, Storytelling and Application",
+                    "hrs": 6
+                }
+            ]
+        },
+        {
+            "course_code": "25AE303",
+            "course_name": "Entrepreneurship Development",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Apply entrepreneurial traits, ideation tools, and opportunity evaluation methods."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Analyze market needs and define a customer-focused value proposition."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Analyze startup financing, team building, and lean strategies."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Apply business model canvas and assess venture feasibility"
+                },
+                {
+                    "co": "CO5",
+                    "description": "Evaluate and pitch entrepreneurial ideas effectively."
+                }
+            ],
+            "modules": [
+                {
+                    "module_no": 1,
+                    "title": "Entrepreneurship Fundamentals",
+                    "hrs": 4
+                },
+                {
+                    "module_no": 2,
+                    "title": "Opportunity Discovery and Ideation",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 3,
+                    "title": "Business Model & Customer Discovery",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 4,
+                    "title": "Startup Planning and Resources",
+                    "hrs": 6
+                },
+                {
+                    "module_no": 5,
+                    "title": "Investor Pitch Preparation",
+                    "hrs": 8
+                }
+            ]
+        },
+        {
+            "course_code": "25COPCL301",
+            "course_name": "Data Structures Lab",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Implement various operations like insertion, deletion, and traversing on arrays, stack and queues."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Implement various operations like insertion, deletion and traversing on linked list."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Choose appropriate data structure and apply it to solve various problems."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Implement various operations like insertion, deletion and traversing on non linear data structures."
+                },
+                {
+                    "co": "CO5",
+                    "description": "Select appropriate searching technique to solve a given problem."
+                }
+            ]
+        },
+        {
+            "course_code": "25COPCL302",
+            "course_name": "Database Management System Lab",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Design ER/EER Diagram and convert to relational model for the real-world application"
+                },
+                {
+                    "co": "CO2",
+                    "description": "Apply DDL, DML, DCL and TCL Commands"
+                },
+                {
+                    "co": "CO3",
+                    "description": "Formulate simple and complex queries"
+                },
+                {
+                    "co": "CO4",
+                    "description": "Execute PL/SQL Constructs"
+                },
+                {
+                    "co": "CO5",
+                    "description": "Demonstrate the concept of transactions execution and frontend-backend connectivity"
+                }
+            ]
+        },
+        {
+            "course_code": "25COPCL303",
+            "course_name": "Object Oriented Programming Lab II",
+            "course_outcomes": [
+                {
+                    "co": "CO1",
+                    "description": "Apply core Python programming concepts by creating and manipulating data structures."
+                },
+                {
+                    "co": "CO2",
+                    "description": "Create functions, apply exception handling, and use regular expressions in Python to develop solutions for real-life programming problems efficiently and logically."
+                },
+                {
+                    "co": "CO3",
+                    "description": "Apply the concept of object-oriented programming to solve problems."
+                },
+                {
+                    "co": "CO4",
+                    "description": "Design and develop graphical user interface (GUI) applications to create user-friendly applications."
+                },
+                {
+                    "co": "CO5",
+                    "description": "Apply Python libraries to perform efficient data handling, analysis, and manipulation tasks for the given problem."
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+# 1. NEVER upload your API keys!
+.env
+
+# 2. NEVER upload the Python virtual environment (it has thousands of files)
+.venv/
+venv/
+env/
+
+# 3. NEVER upload your Vector Databases (These are huge and should stay local)
+storage/
+
+# 4. Standard Python Cache garbage
+__pycache__/
+*.pyc
