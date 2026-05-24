@@ -5,11 +5,18 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
 from llama_index.core import (
+    Settings,
     StorageContext,
     load_index_from_storage
 )
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+import torch
 from dotenv import load_dotenv
-load_dotenv() 
+load_dotenv()
+Settings.embed_model = HuggingFaceEmbedding(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    device="cuda" if torch.cuda.is_available() else "cpu"
+)
 class SearchSchema(BaseModel):
     query: str = Field(
         description="The specific academic topic or subject to look up in the database."
@@ -56,7 +63,7 @@ def web_search(query:str)->str:
     return result
 
 my_tools=[search_syllabus,search_reference_books,web_search]
-llm=ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
+llm=ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
 llm_tools=llm.bind_tools(my_tools)
 llm_tools.invoke("what page replacement algorithms are there in syllabus? after that search for the concept in the reference books and provide the relevant information to the students and if you dont find any relevant information in the reference books then search for the concept on the web and provide the relevant information to the students")
 print("🧠 Gemini is thinking...")
