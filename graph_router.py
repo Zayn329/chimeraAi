@@ -13,7 +13,7 @@ class Agentstate(MessagesState):
     pass
 
 # Initialize model and bind tools
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
+llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
 my_tools = [search_syllabus, search_reference_books, web_search]
 llm_tools = llm.bind_tools(my_tools)
 
@@ -47,13 +47,13 @@ workflow.add_conditional_edges("agent", routing_function)
 workflow.add_edge("tools", "agent")
 
 # Compile the design configuration into a runnable application
-app = workflow.compile()
+tutor_graph = workflow.compile()
 
 if __name__ == "__main__":
     prompt = "What page replacement algorithms are mentioned in the  syllabus? Explain them briefly."
     
     print("🚀 Triggering the Chimera Agentic Loop...")
-    final_state = app.invoke({"messages": [prompt]})
+    final_state = tutor_graph.invoke({"messages": [prompt]})
     
     print("\n🎓 FINAL AGENT RESPONSE:\n")
     

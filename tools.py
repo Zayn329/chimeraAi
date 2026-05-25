@@ -63,7 +63,7 @@ def web_search(query:str)->str:
     return result
 
 my_tools=[search_syllabus,search_reference_books,web_search]
-llm=ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
+llm=ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
 llm_tools=llm.bind_tools(my_tools)
 llm_tools.invoke("what page replacement algorithms are there in syllabus? after that search for the concept in the reference books and provide the relevant information to the students and if you dont find any relevant information in the reference books then search for the concept on the web and provide the relevant information to the students")
 print("🧠 Gemini is thinking...")
