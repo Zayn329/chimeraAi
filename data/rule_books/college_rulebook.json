@@ -1,0 +1,22 @@
+{
+  "document_type": "college_rulebook",
+  "institution": "Autonomous Chimera College",
+  "version": "2026.1",
+  "policies": [
+    {
+      "policy_id": "ACAD-001",
+      "category": "Attendance",
+      "rule_text": "A minimum of 75% attendance is strictly required in all theory and practical courses. Students falling below this threshold will receive a 'Detained' grade and cannot sit for end-semester examinations under any circumstances."
+    },
+    {
+      "policy_id": "FIN-042",
+      "category": "Fees and Penalties",
+      "rule_text": "Semester tuition fees must be paid in full by the 10th of the first month of the semester. A strict late fee penalty of Rs. 500 per day will be levied for any fee submissions made after the official deadline. After 15 days of late fees, the student's university portal access will be permanently suspended."
+    },
+    {
+      "policy_id": "EXAM-103",
+      "category": "Examinations",
+      "rule_text": "Any student caught using unauthorized electronic devices during examinations will face an immediate 'Unfair Means' (UFM) committee hearing and a minimum academic suspension of one full semester."
+    }
+  ]
+}

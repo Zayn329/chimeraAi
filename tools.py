@@ -55,6 +55,25 @@ def search_reference_books(query:str)->str:
             print(f"Text: {node.text.strip()[:300]}...\n")
     text_results = [node.text for node in retrieved_nodes]
     return "\n\n".join(text_results)
+@tool
+def search_rulebook(query: str) -> str:
+    """Searches the autonomous college rulebook for policies, fees, attendance, and administrative rules."""
+    print(f"\n[Bureaucrat Tool] Searching Rulebook for: {query}")
+    storage_context = StorageContext.from_defaults(persist_dir="./storage/rule_books_index")
+    index = load_index_from_storage(storage_context)
+    retriever = index.as_retriever(similarity_top_k=3)
+    nodes = retriever.retrieve(query)
+    return "\n\n".join([n.get_content() for n in nodes])
+
+@tool
+def search_pyqs(query: str) -> str:
+    """Searches Previous Year Questions (PYQs) to analyze exam patterns, important topics, and mark weights."""
+    print(f"\n[Strategist Tool] Searching PYQs for: {query}")
+    storage_context = StorageContext.from_defaults(persist_dir="./storage/previous_year_qps_index")
+    index = load_index_from_storage(storage_context)
+    retriever = index.as_retriever(similarity_top_k=3)
+    nodes = retriever.retrieve(query)
+    return "\n\n".join([n.get_content() for n in nodes])
 @tool(args_schema=SearchSchema)
 def web_search(query:str)->str:
     ''' search for information on the web when the students asks about the concept in syllabus and the students want to know more about the concept'''
@@ -62,7 +81,7 @@ def web_search(query:str)->str:
     result = search_tool.run(query)
     return result
 
-my_tools=[search_syllabus,search_reference_books,web_search]
+my_tools=[search_syllabus,search_reference_books,web_search,search_rulebook,search_pyqs]
 llm=ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
 llm_tools=llm.bind_tools(my_tools)
 llm_tools.invoke("what page replacement algorithms are there in syllabus? after that search for the concept in the reference books and provide the relevant information to the students and if you dont find any relevant information in the reference books then search for the concept on the web and provide the relevant information to the students")

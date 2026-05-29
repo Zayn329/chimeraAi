@@ -1,0 +1,39 @@
+{
+  "document_type": "previous_year_questions",
+  "course_name": "Operating Systems",
+  "course_code": "CS-304",
+  "exam_term": "Dec 2022",
+  "structure": "Section A (Short Questions - 2 Marks Each)",
+  "questions": [
+    {
+      "question_number": "Q1(a)",
+      "marks": 2,
+      "topic": "Process Scheduling",
+      "question_text": "Differentiate between preemptive and non-preemptive scheduling algorithms."
+    },
+    {
+      "question_number": "Q1(b)",
+      "marks": 2,
+      "topic": "Memory Management",
+      "question_text": "How do you calculate the physical address from a logical address using a page table?"
+    },
+    {
+      "question_number": "Q1(c)",
+      "marks": 2,
+      "topic": "Memory Management",
+      "question_text": "What is a page fault? Briefly state the advantage of using the LRU page replacement algorithm."
+    },
+    {
+      "question_number": "Q1(d)",
+      "marks": 2,
+      "topic": "Deadlocks",
+      "question_text": "Define priority inversion. Give one application or scenario where it occurs."
+    },
+    {
+      "question_number": "Q1(e)",
+      "marks": 2,
+      "topic": "File Systems",
+      "question_text": "What is a File Allocation Table (FAT)? Give its representation in memory."
+    }
+  ]
+}

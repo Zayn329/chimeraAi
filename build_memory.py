@@ -112,6 +112,24 @@ def main():
         file_extractor=file_extractor,
         workers=safe_workers
     )
+    ingest_or_update_store(
+        store_name="Rule Books",
+        input_dir="./data/rule_books",
+        persist_dir="./storage/rule_books_index",
+        metadata_dict={"department": "ALL", "doc_type": "rule_book", "semester": "ALL"},
+        splitter=book_splitter,
+        file_extractor=file_extractor,
+        workers=safe_workers
+    )
+    ingest_or_update_store(
+        store_name="Previous Year Question Papers",
+        input_dir="./data/previous_year_qps",
+        persist_dir="./storage/previous_year_qps_index",
+        metadata_dict={"department": "CS", "doc_type": "previous_year_qp", "semester": "3"},
+        splitter=book_splitter,
+        file_extractor=file_extractor,
+        workers=safe_workers
+    )
 
     # ==========================================
     # QUERY TEST (Retrieval Only)

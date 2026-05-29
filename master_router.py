@@ -3,7 +3,8 @@ import dotenv
 from pydantic import BaseModel, Field
 from typing import Literal
 from graph_router import tutor_graph
-
+from strategist_agent import strategist_graph
+from bureaucrat_agent import bureaucrat_graph
 # Fixed the import paths for LangChain and LangGraph
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import MessagesState, StateGraph, START, END
@@ -23,14 +24,7 @@ class RouteDecision(BaseModel):
 # Added the destination variable to the clipboard blueprint
 class AgentState(MessagesState):
     destination: str
-
- 
-
-def strategist_node(state: AgentState) -> dict:
-    return {"messages": ["Strategist agent is activated"]}
-
-def bureaucrat_node(state: AgentState) -> dict:
-    return {"messages": ["Bureaucrat agent is activated"]}     
+  
 
 llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
 structured_llm = llm.with_structured_output(RouteDecision)
@@ -51,8 +45,8 @@ workflow = StateGraph(AgentState)
 
 workflow.add_node("supervisor", supervisor_node)
 workflow.add_node("tutor", tutor_graph) # Reusing the tutor graph as a node in this higher-level router
-workflow.add_node("strategist", strategist_node)
-workflow.add_node("bureaucrat", bureaucrat_node)
+workflow.add_node("strategist", strategist_graph)
+workflow.add_node("bureaucrat", bureaucrat_graph)
 
 workflow.add_edge(START, "supervisor")
 
@@ -67,7 +61,7 @@ workflow.add_edge("bureaucrat", END)
 app = workflow.compile()
 
 if __name__ == "__main__":
-    prompt = "Who had built js and why? I want to understand the history and motivation behind JavaScript."
+    prompt = "how much marks are there for attendance in operating systems cours?"
     print("🚀 Triggering the Master Router Agentic Loop...")
     
     final_state = app.invoke({"messages": [prompt]})
