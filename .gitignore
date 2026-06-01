@@ -12,3 +12,5 @@ storage/
 # 4. Standard Python Cache garbage
 __pycache__/
 *.pyc
+
+frontend/node_modules/

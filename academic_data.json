@@ -1,0 +1,70 @@
+{
+  "calendar": [
+    {
+      "event_name": "Operating Systems Midterm Exam",
+      "date": "2026-06-10",
+      "category": "Exam",
+      "subject": "Operating Systems"
+    },
+    {
+      "event_name": "Data Structures Lab Assignment 4 Due",
+      "date": "2026-06-08",
+      "category": "Deadline",
+      "subject": "Data Structures"
+    },
+    {
+      "event_name": "Computer Networks Quiz 2",
+      "date": "2026-06-12",
+      "category": "Exam",
+      "subject": "Computer Networks"
+    },
+    {
+      "event_name": "DBMS Project Submission",
+      "date": "2026-06-15",
+      "category": "Deadline",
+      "subject": "Database Management Systems"
+    },
+    {
+      "event_name": "Operating Systems End-Semester Exam",
+      "date": "2026-06-22",
+      "category": "Exam",
+      "subject": "Operating Systems"
+    },
+    {
+      "event_name": "Software Engineering Presentation",
+      "date": "2026-06-18",
+      "category": "Other",
+      "subject": "Software Engineering"
+    },
+    {
+      "event_name": "Data Structures Final Exam",
+      "date": "2026-06-25",
+      "category": "Exam",
+      "subject": "Data Structures"
+    },
+    {
+      "event_name": "Byte Battle 2026 Online Hackathon",
+      "date": "2026-06-01",
+      "category": "Other",
+      "subject": "Online Hackathon"
+    },
+    {
+      "event_name": "Byte Battle 2026 Hackathon Inauguration Ceremony",
+      "date": "2026-06-01",
+      "category": "Deadline",
+      "subject": "Online Hackathon"
+    }
+  ],
+  "subject_priorities": {
+    "Operating Systems": "Maximum Priority",
+    "Data Structures": "High Priority",
+    "Computer Networks": "Maximum Priority",
+    "Database Management Systems": "Medium",
+    "Software Engineering": "Low",
+    "Online Hackathon": "High Priority"
+  },
+  "sprint_targets": {
+    "Operating Systems": "16 hrs needed. Cover 2 ch/day before 2026-06-10",
+    "Computer Networks": "20 hrs needed. Cover 2 ch/day before 2026-06-12"
+  }
+}
