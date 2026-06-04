@@ -24,6 +24,12 @@ Settings.embed_model = HuggingFaceEmbedding(
     device="cuda" if torch.cuda.is_available() else "cpu"
 )
 
+print("🧠 Booting up Cross-Encoder Re-ranker globally...")
+GLOBAL_RERANKER = SentenceTransformerRerank(
+    model="cross-encoder/ms-marco-MiniLM-L-6-v2", 
+    top_n=2
+)
+
 # Schema 1: For normal tools
 class SearchSchema(BaseModel):
     query: str = Field(
@@ -57,13 +63,7 @@ def search_syllabus(query: str, course_name: str) -> str:
     )
     
     retrieved_nodes = retriever.retrieve(query)
-    
-    # Cross-Encoder Re-Ranking
-    reranker = SentenceTransformerRerank(
-        model="cross-encoder/ms-marco-MiniLM-L-6-v2", 
-        top_n=2
-    )
-    final_nodes = reranker.postprocess_nodes(retrieved_nodes, query_str=query)
+    final_nodes = GLOBAL_RERANKER.postprocess_nodes(retrieved_nodes, query_str=query)
     
     for i, node in enumerate(final_nodes):
         print(f"--- Chunk {i+1} (Score: {node.score:.2f}) ---")
@@ -82,14 +82,8 @@ def search_reference_books(query: str) -> str:
             StorageContext.from_defaults(persist_dir="./storage/reference_books_index")
         )
     retriever = index.as_retriever(similarity_top_k=8)
-    
-    reranker = SentenceTransformerRerank(
-        model="cross-encoder/ms-marco-MiniLM-L-6-v2", 
-        top_n=2
-    )
-    
     retrieved_nodes = retriever.retrieve(query)    
-    final_nodes = reranker.postprocess_nodes(retrieved_nodes, query_str=query)
+    final_nodes = GLOBAL_RERANKER.postprocess_nodes(retrieved_nodes, query_str=query)
     
     for i, node in enumerate(final_nodes):
         print(f"--- Chunk {i+1} (Score: {node.score:.2f}) ---")
