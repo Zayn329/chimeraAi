@@ -8,7 +8,7 @@ from bureaucrat_agent import bureaucrat_graph
 # Fixed the import paths for LangChain and LangGraph
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import MessagesState, StateGraph, START, END
-
+from langgraph.memory import MemorySaver
 dotenv.load_dotenv()
 
 class RouteDecision(BaseModel):
@@ -57,8 +57,8 @@ workflow.add_conditional_edges("supervisor", route_to_worker)
 workflow.add_edge("tutor", END)
 workflow.add_edge("strategist", END)
 workflow.add_edge("bureaucrat", END)
-
-app = workflow.compile()
+memory=MemorySaver()
+app = workflow.compile(memory=memory)
 
 if __name__ == "__main__":
     prompt = "how much marks are there for attendance in operating systems cours?"
