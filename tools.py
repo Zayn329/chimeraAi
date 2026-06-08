@@ -3,17 +3,15 @@ import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
-from llama_index.core import (
-    Settings,
-    StorageContext,
-    load_index_from_storage
-)
+from llama_index.core import Settings
 from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
 # FIXED IMPORT: Correct spelling and path
 from llama_index.core.postprocessor import SentenceTransformerRerank
-
+from pinecone import Pinecone
+from llama_index.vector_stores.pinecone import PineconeVectorStore
+from llama_index.core import VectorStoreIndex
 import torch
 from dotenv import load_dotenv
 
@@ -44,16 +42,21 @@ class SyllabusSchema(BaseModel):
     course_name: str = Field(
         description="The name of the course for which the syllabus information is being searched."
     )
-    
-# FIXED: Bind to the correct SyllabusSchema!
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+index_name = "chimera-brain"
+index = pc.Index(index_name)
+
 @tool(args_schema=SyllabusSchema)    
 def search_syllabus(query: str, course_name: str) -> str:
     '''Search for information in the syllabus...'''
     print(f"\n[Tutor Tool] Searching {course_name} Syllabus for: {query}")
-    if os.path.exists("./storage/syllabi_index"):
-        # FIXED: Removed filters from load_index_from_storage
-        index = load_index_from_storage(
-            StorageContext.from_defaults(persist_dir="./storage/syllabi_index")
+    vector_store = PineconeVectorStore(
+        pinecone_index=index,
+        namespace="syllabi"
+    )
+    index=VectorStoreIndex.from_vector_store(
+        vector_store=vector_store,
+        embeddings=Settings.embed_model
         )
         
     # FIXED: Wrapped the ExactMatchFilter inside MetadataFilters
@@ -77,11 +80,15 @@ def search_syllabus(query: str, course_name: str) -> str:
 def search_reference_books(query: str) -> str:
     '''search for information in the reference books...'''
     print(f"\n[Tutor Tool] Searching Reference Books for: {query}")
-    if os.path.exists("./storage/reference_books_index"):
-        index = load_index_from_storage(
-            StorageContext.from_defaults(persist_dir="./storage/reference_books_index")
-        )
-    retriever = index.as_retriever(similarity_top_k=8)
+    vector_store = PineconeVectorStore(
+        pinecone_index=index,
+        namespace="reference_books"
+    )
+    ref_index = VectorStoreIndex.from_vector_store(
+        vector_store=vector_store,
+        embeddings=Settings.embed_model
+    )
+    retriever = ref_index.as_retriever(similarity_top_k=8)
     retrieved_nodes = retriever.retrieve(query)    
     final_nodes = GLOBAL_RERANKER.postprocess_nodes(retrieved_nodes, query_str=query)
     
@@ -97,22 +104,34 @@ def search_reference_books(query: str) -> str:
 def search_rulebook(query: str) -> str:
     """Searches the autonomous college rulebook..."""
     print(f"\n[Bureaucrat Tool] Searching Rulebook for: {query}")
-    storage_context = StorageContext.from_defaults(persist_dir="./storage/rule_books_index")
-    index = load_index_from_storage(storage_context)
-    retriever = index.as_retriever(similarity_top_k=3)
+    vector_store = PineconeVectorStore(
+        pinecone_index=index,
+        namespace="rule_books"
+    )
+    rulebook_index = VectorStoreIndex.from_vector_store(
+        vector_store=vector_store,
+        embeddings=Settings.embed_model
+    )
+    retriever = rulebook_index.as_retriever(similarity_top_k=3)
     
     nodes = retriever.retrieve(query)
-    return "\n\n".join([n.get_content() for n in nodes])
+    return "\n\n".join([n.text for n in nodes])
 
 @tool
 def search_pyqs(query: str) -> str:
     """Searches Previous Year Questions (PYQs)..."""
     print(f"\n[Strategist Tool] Searching PYQs for: {query}")
-    storage_context = StorageContext.from_defaults(persist_dir="./storage/previous_year_qps_index")
-    index = load_index_from_storage(storage_context)
-    retriever = index.as_retriever(similarity_top_k=3)
+    vector_store = PineconeVectorStore(
+        pinecone_index=index,
+        namespace="previous_year_qps"
+    )
+    pyqs_index = VectorStoreIndex.from_vector_store(
+        vector_store=vector_store,
+        embeddings=Settings.embed_model
+    )
+    retriever = pyqs_index.as_retriever(similarity_top_k=3)
     nodes = retriever.retrieve(query)
-    return "\n\n".join([n.get_content() for n in nodes])
+    return "\n\n".join([n.text for n in nodes])
 
 @tool(args_schema=SearchSchema)
 def web_search(query: str) -> str:
@@ -123,4 +142,4 @@ def web_search(query: str) -> str:
 
 if __name__ == "__main__":
     my_tools = [search_syllabus, search_reference_books, web_search, search_rulebook, search_pyqs]
-    # FIXED: Make
+        
