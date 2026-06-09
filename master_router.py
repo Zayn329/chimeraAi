@@ -1,4 +1,5 @@
 import os
+import asyncio
 import dotenv
 from pydantic import BaseModel, Field
 from typing import Literal
@@ -27,12 +28,12 @@ class AgentState(MessagesState):
   
 
 llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
-structured_llm = llm.with_structured_output(RouteDecision)
+structured_llm =llm.with_structured_output(RouteDecision)
 
-def supervisor_node(state: AgentState) -> dict:
+async def supervisor_node(state: AgentState) -> dict:
     messages = state["messages"]
     # Call the LLM exactly once and save the decision object
-    decision = structured_llm.invoke(messages)
+    decision = await structured_llm.ainvoke(messages)
     
     # Save the decision to the 'destination' slot on the clipboard
     return {"destination": decision.destination}
@@ -60,11 +61,11 @@ workflow.add_edge("bureaucrat", END)
 memory = MemorySaver()
 app = workflow.compile(checkpointer=memory)
 
-if __name__ == "__main__":
+async def main():
     prompt = "how much marks are there for attendance in operating systems cours?"
     print("🚀 Triggering the Master Router Agentic Loop...")
     
-    final_state = app.invoke({"messages": [prompt]})
+    final_state = await app.ainvoke({"messages": [prompt]})
     
     print("\n🎓 FINAL ROUTING DECISION & RESPONSE:\n")
     
@@ -80,3 +81,6 @@ if __name__ == "__main__":
                 print(block)
     else:
         print(final_message.content)
+
+if __name__ == "__main__":
+    asyncio.run(main())

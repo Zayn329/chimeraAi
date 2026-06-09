@@ -9,7 +9,7 @@ if "messages" not in st.session_state:
 
 # Generate a unique thread_id for this user (persists across reruns)
 if "thread_id" not in st.session_state:
-    st.session_state.thread_id = random.randint(100000, 999999)
+    st.session_state.thread_id = str(random.randint(100000, 999999))
 
 
 st.title("🧠 Chimera AI Assistant")
