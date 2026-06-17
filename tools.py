@@ -2,7 +2,12 @@ from pydantic import BaseModel, Field
 import os
 import torch
 import asyncio
+from typing import Literal
 from dotenv import load_dotenv
+
+# Valid Courses List
+VALID_COURSES = ["Analysis of Algorithms", "Operating Systems", "Computer Networks"]
+course_list_str = ", ".join(VALID_COURSES)
 
 from langchain.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
@@ -39,7 +44,7 @@ class SyllabusSchema(BaseModel):
         description="The specific module, topic, or chapter heading to search for within the syllabus."
     )
     course_name: str = Field(
-        description="The formal code or title of the academic course (e.g., Operating Systems, Data Structures)."
+        description=f"You MUST provide an exact course name. Available courses are: [{course_list_str}]. If the user asks for a course not in this list, output 'NOT_FOUND'."
     )
 
 # Establish Cloud Context
@@ -65,6 +70,10 @@ async def search_syllabus(query: str, course_name: str) -> str:
     retriever = syllabus_index.as_retriever(similarity_top_k=4)
     
     retrieved_nodes = await retriever.aretrieve(query)
+    
+    if not retrieved_nodes:
+        return "SYSTEM ALERT: No reference books found for this exact course in the database. You MUST use the web_search tool instead."
+    
     final_nodes = GLOBAL_RERANKER.postprocess_nodes(retrieved_nodes, query_str=query)
     
     return "\n\n".join([node.text for node in final_nodes])
@@ -83,6 +92,10 @@ async def search_reference_books(query: str) -> str:
     )
     retriever = ref_index.as_retriever(similarity_top_k=8)
     retrieved_nodes = await retriever.aretrieve(query)
+    
+    if not retrieved_nodes:
+        return "SYSTEM ALERT: No reference books found for this exact course in the database. You MUST use the web_search tool instead."
+    
     final_nodes = GLOBAL_RERANKER.postprocess_nodes(retrieved_nodes, query_str=query)
     
     return "\n\n".join([node.text for node in final_nodes])
@@ -117,6 +130,10 @@ async def search_pyqs(query: str) -> str:
     )
     retriever = pyqs_index.as_retriever(similarity_top_k=3)
     nodes = await retriever.aretrieve(query)
+    
+    if not nodes:
+        return "SYSTEM ALERT: No reference books found for this exact course in the database. You MUST use the web_search tool instead."
+    
     return "\n\n".join([n.text for n in nodes])
 
 @tool(args_schema=SearchSchema)

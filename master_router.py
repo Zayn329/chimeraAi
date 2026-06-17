@@ -27,7 +27,7 @@ class AgentState(MessagesState):
     destination: str
   
 
-llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.2)
+llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.2)
 structured_llm =llm.with_structured_output(RouteDecision)
 
 async def supervisor_node(state: AgentState) -> dict:

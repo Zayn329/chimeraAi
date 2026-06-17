@@ -62,7 +62,7 @@ class SemanticCache:
         print(f"❌ [CACHE MISS] Query falls outside safe caching margins.")
         return None
 
-    def add_to_cache(self, query: str, response: str):
+    def update_cache(self, query: str, response: str):
         """Commits fresh vector sequences and paired string targets to the memory stack."""
         if not response or response.startswith("Swarm Error:"):
             print(f"⚠️ [Cache Blocked] Refusing to commit system failure outputs to vault.")

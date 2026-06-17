@@ -25,6 +25,8 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("Ask Chimera something...")
 
 if user_input:
+    status_placeholder = st.empty()  # Will display real-time server thoughts
+    text_placeholder = st.empty()    # Will handle main markdown generation
     # Append user message to history
     st.session_state.messages.append({"role": "user", "content": user_input})
     
@@ -46,15 +48,22 @@ if user_input:
                     "thread_id": st.session_state.thread_id
                 },
                 stream=True,
-                timeout=60
+                timeout=300
             )
             
             if response.status_code == 200:
                 # Stream tokens as they arrive
                 for token in response.iter_content(decode_unicode=True):
                     if token:  # Skip empty tokens
-                        full_response += token
-                        message_placeholder.write(full_response)
+                        # Check if token begins with system prefix
+                        if token.startswith("⚡STATUS:"):
+                            # Strip the prefix and display in status box
+                            clean_status = token.replace("⚡STATUS:", "", 1)
+                            status_placeholder.info(f"🤖 {clean_status}")
+                        else:
+                            # Treat as standard conversational content
+                            full_response += token
+                            text_placeholder.markdown(full_response)
                 
                 # After streaming finishes, append complete response to history
                 st.session_state.messages.append({
