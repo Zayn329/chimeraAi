@@ -3,7 +3,7 @@ import dotenv
 from langgraph.graph import MessagesState, StateGraph, END, START
 from langgraph.prebuilt import ToolNode
 from langchain_google_genai import ChatGoogleGenerativeAI
-from tools import search_syllabus, search_reference_books, web_search
+from chimera_backend.tools import search_syllabus, search_reference_books, web_search
 
 # Load local environment variables (.env file)
 dotenv.load_dotenv()

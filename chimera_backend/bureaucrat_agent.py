@@ -3,20 +3,20 @@ from langgraph.graph import MessagesState, StateGraph, END, START
 from langgraph.prebuilt import ToolNode
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage
-from tools import search_pyqs
+from chimera_backend.tools import search_rulebook
 
 dotenv.load_dotenv()
 
 class Agentstate(MessagesState):
     pass
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
-my_tools = [search_pyqs]
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.0)
+my_tools = [search_rulebook]
 llm_tools = llm.bind_tools(my_tools)
 
 def agent_worker(state: Agentstate) -> dict:
     # The Persona Injection!
-    sys_msg = SystemMessage(content="You are a brilliant exam strategist. Analyze past questions, highlight important topics, and give the student a tactical advantage.")
+    sys_msg = SystemMessage(content="You are a strict, emotionless college administrator. You must cite exact policy IDs from the rulebook. Never give academic advice.")
     
     messages = state["messages"]
     response = llm_tools.invoke([sys_msg] + messages)
@@ -37,4 +37,4 @@ workflow.add_edge(START, "agent")
 workflow.add_conditional_edges("agent", routing_function)
 workflow.add_edge("tools", "agent")
 
-strategist_graph = workflow.compile()
+bureaucrat_graph = workflow.compile()

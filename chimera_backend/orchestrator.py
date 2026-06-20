@@ -7,7 +7,7 @@ from typing import Literal
 from langchain_core.messages import SystemMessage
 
 # Import your tools
-from tools import deep_search, search_pyqs, search_rulebook, search_syllabus, search_reference_books, web_search
+from chimera_backend.tools import deep_search, search_pyqs, search_rulebook, search_syllabus, search_reference_books, web_search
 
 # Note: Gemini 1.5 Flash is the correct model name (3.5 doesn't exist yet!)
 llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.2)

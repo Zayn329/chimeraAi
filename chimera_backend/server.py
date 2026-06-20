@@ -6,9 +6,9 @@ import uvicorn
 from pydantic import BaseModel
 
 # Import our compiled LangGraph workflow asset
-from orchestrator import master_swarm 
+from chimera_backend.orchestrator import master_swarm 
 # Import the custom caching singleton
-from semantic_cache import global_semantic_cache
+from chimera_backend.semantic_cache import global_semantic_cache
 
 app = FastAPI(title="Chimera Swarm API", description="Stateless Microservice with Caching & Fault Tolerance")
 

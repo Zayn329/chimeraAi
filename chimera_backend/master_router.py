@@ -3,9 +3,9 @@ import asyncio
 import dotenv
 from pydantic import BaseModel, Field
 from typing import Literal
-from graph_router import tutor_graph
-from strategist_agent import strategist_graph
-from bureaucrat_agent import bureaucrat_graph
+from chimera_backend.graph_router import tutor_graph
+from chimera_backend.strategist_agent import strategist_graph
+from chimera_backend.bureaucrat_agent import bureaucrat_graph
 # Fixed the import paths for LangChain and LangGraph
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import MessagesState, StateGraph, START, END
