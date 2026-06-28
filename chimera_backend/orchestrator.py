@@ -1,14 +1,15 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
-from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel, Field
 from typing import Literal
 from langchain_core.messages import SystemMessage
-
+from pymongo import MongoClient
+import os
+from langgraph.checkpoint.mongodb import MongoDBSaver
 # Import your tools
 from chimera_backend.tools import deep_search, search_pyqs, search_rulebook, search_syllabus, search_reference_books, web_search
-
+mongo_client = MongoClient(os.getenv("MONGODB_URI"))
 # Note: Gemini 1.5 Flash is the correct model name (3.5 doesn't exist yet!)
 llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.2)
 
@@ -109,4 +110,5 @@ workflow.add_conditional_edges("strategist", route_after_agent, {"tools": "tools
 workflow.add_conditional_edges("tools", route_after_tools)
 
 # Final Compilation
-master_swarm = workflow.compile(checkpointer=MemorySaver())
+cloud_checkpointer = MongoDBSaver(mongo_client)
+master_swarm = workflow.compile(checkpointer=cloud_checkpointer)

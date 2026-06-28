@@ -13,8 +13,15 @@ storage/
 __pycache__/
 *.pyc
 
-# 5. Frontend dependencies (never commit node_modules)
+# 5. Frontend / Gateway dependencies (never commit node_modules or builds)
 frontend/node_modules/
 frontend/.npm
 frontend/dist/
 frontend/build/
+chimera-gateway/node_modules/
+node_modules/
+*.log
+
+# 6. Local data ingested into DB
+data/
+

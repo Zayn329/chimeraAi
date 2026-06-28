@@ -22,10 +22,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 
 # 7. Final Code Copy (Typos modified in source will execute instantly via cache skip)
-COPY . .
+COPY . ./chimera_backend
 
-# 8. Expose FastAPI interface gateway port
+# 8. Set PYTHONPATH so that the chimera_backend folder is recognized as a package
+ENV PYTHONPATH=/app
+
+# 9. Expose FastAPI interface gateway port
 EXPOSE 8000
 
-# 9. Launch async execution server
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+# 10. Launch async execution server
+CMD ["uvicorn", "chimera_backend.server:app", "--host", "0.0.0.0", "--port", "8000"]
