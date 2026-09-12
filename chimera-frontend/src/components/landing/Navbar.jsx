@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { Menu, ArrowRight, Layers } from "lucide-react";
+import { Menu, ArrowRight } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet";
 
 export function Navbar({ onNavigate }) {
@@ -16,8 +15,8 @@ export function Navbar({ onNavigate }) {
     { label: "Home", href: "#home" },
     { label: "Agents", href: "#agents" },
     { label: "How It Works", href: "#how-it-works" },
+    { label: "Demo", href: "#demo" },
     { label: "Architecture", href: "#architecture" },
-    { label: "Docs", href: "#docs" },
   ];
 
   const handleLinkClick = (e, href) => {
@@ -37,7 +36,7 @@ export function Navbar({ onNavigate }) {
     <header className="sticky top-0 z-40 w-full bg-[#F9FAFB]/90 backdrop-blur-md border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
-        <a href="#home" className="flex items-center gap-2.5 group">
+        <a href="#home" onClick={(e) => handleLinkClick(e, "#home")} className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center text-white font-bold text-lg shadow-xs group-hover:bg-[#4338CA] transition-colors">
             C
           </div>
@@ -63,8 +62,8 @@ export function Navbar({ onNavigate }) {
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center">
           <a
-            href="#hero-prompt"
-            onClick={(e) => handleLinkClick(e, "#hero-prompt")}
+            href="#demo"
+            onClick={(e) => handleLinkClick(e, "#demo")}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#4F46E5] text-white text-sm font-medium hover:bg-[#4338CA] transition-colors shadow-xs"
           >
             Start Chat
@@ -105,8 +104,8 @@ export function Navbar({ onNavigate }) {
                   </a>
                 ))}
                 <a
-                  href="#hero-prompt"
-                  onClick={(e) => handleLinkClick(e, "#hero-prompt")}
+                  href="#demo"
+                  onClick={(e) => handleLinkClick(e, "#demo")}
                   className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#4F46E5] text-white font-medium hover:bg-[#4338CA] transition-colors text-center"
                 >
                   Start Chat
