@@ -8,6 +8,10 @@ import { KnowledgeSection } from "@/components/landing/KnowledgeSection";
 import { TechnicalFeatures } from "@/components/landing/TechnicalFeatures";
 import AskChimera from "@/components/AskChimera";
 import ArchitecturePreview from "@/components/ArchitecturePreview";
+import AcademicUseCases from "@/components/landing/AcademicUseCases";
+import FaqSection from "@/components/landing/FaqSection";
+import FinalCTA from "@/components/landing/FinalCTA";
+import Footer from "@/components/landing/Footer";
 
 export function LandingPage() {
   const [submittedQuery, setSubmittedQuery] = useState("");
@@ -28,35 +32,49 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] text-[#1F2937] font-sans selection:bg-[#4F46E5]/20 selection:text-[#4F46E5]">
-      {/* Section 1: Navbar */}
-      <Navbar />
+    <div className="min-h-screen bg-[#F9FAFB] text-[#1F2937] font-sans selection:bg-[#4F46E5]/20 selection:text-[#4F46E5] flex flex-col justify-between">
+      <div>
+        {/* Section 1: Navbar */}
+        <Navbar />
 
-      <main className="space-y-6 pb-20">
-        {/* Section 2: Hero */}
-        <Hero onQuerySubmit={handleQuerySubmit} activeQuery={submittedQuery} />
+        <main className="space-y-6 pb-12">
+          {/* Section 2: Hero */}
+          <Hero onQuerySubmit={handleQuerySubmit} activeQuery={submittedQuery} />
 
-        {/* Section 3: Hero Routing Preview */}
-        <AgentRoutingPreview activeQuery={submittedQuery} />
+          {/* Section 3: Hero Routing Preview */}
+          <AgentRoutingPreview activeQuery={submittedQuery} />
 
-        {/* Section 4: Agent Swarm */}
-        <AgentSwarm />
+          {/* Section 4: Agent Swarm */}
+          <AgentSwarm />
 
-        {/* Section 5: How Chimera Works */}
-        <HowItWorks />
+          {/* Section 5: How Chimera Works */}
+          <HowItWorks />
 
-        {/* Section 6: Knowledge & Retrieval */}
-        <KnowledgeSection />
+          {/* Section 6: Knowledge & Retrieval */}
+          <KnowledgeSection />
 
-        {/* Section 7: Technical Differentiators */}
-        <TechnicalFeatures />
+          {/* Section 7: Technical Differentiators */}
+          <TechnicalFeatures />
 
-        {/* Section 8: Ask Chimera Interactive Demo */}
-        <AskChimera />
+          {/* Section 8: Ask Chimera Interactive Demo */}
+          <AskChimera />
 
-        {/* Section 9: Architecture Preview */}
-        <ArchitecturePreview onNavigateToDocs={handleNavigateToDocs} />
-      </main>
+          {/* Section 9: Architecture Preview */}
+          <ArchitecturePreview onNavigateToDocs={handleNavigateToDocs} />
+
+          {/* Section 10: Academic Use Cases */}
+          <AcademicUseCases />
+
+          {/* Section 11: FAQ */}
+          <FaqSection />
+
+          {/* Section 12: Final CTA */}
+          <FinalCTA />
+        </main>
+      </div>
+
+      {/* Section 13: Footer */}
+      <Footer />
     </div>
   );
 }
