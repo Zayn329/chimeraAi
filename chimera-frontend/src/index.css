@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-indigo: #4F46E5;
+  --color-strategist-green: #10B981;
+  --color-policy-amber: #F59E0B;
+  --color-chimera-bg: #F9FAFB;
+  --color-chimera-card: #FFFFFF;
+  --color-chimera-border: #E5E7EB;
+  --color-chimera-dark: #1F2937;
+  --color-chimera-dark-border: #374151;
+  --color-chimera-secondary: #6B7280;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F9FAFB;
+  color: #1F2937;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
