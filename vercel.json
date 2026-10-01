@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd chimera-frontend && npm run build",
+  "outputDirectory": "chimera-frontend/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
