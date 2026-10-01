@@ -7,7 +7,7 @@ from chimera_backend.graph_router import tutor_graph
 from chimera_backend.strategist_agent import strategist_graph
 from chimera_backend.bureaucrat_agent import bureaucrat_graph
 # Fixed the import paths for LangChain and LangGraph
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langgraph.graph import MessagesState, StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 dotenv.load_dotenv()
@@ -27,7 +27,7 @@ class AgentState(MessagesState):
     destination: str
   
 
-llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.2)
+llm = ChatGroq(model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"), temperature=0.2)
 structured_llm =llm.with_structured_output(RouteDecision)
 
 async def supervisor_node(state: AgentState) -> dict:

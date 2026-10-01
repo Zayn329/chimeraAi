@@ -1,92 +1,121 @@
-import streamlit as st
-import requests
+import json
 import random
 
+import requests
+import streamlit as st
 
-# Initialize message history if it doesn't exist
+API_ROOT = "http://localhost:8000"
+st.set_page_config(page_title="Chimera AI Assistant", page_icon="🧠", layout="wide")
+st.title("🧠 Chimera AI Assistant")
+st.caption("Teacher knowledge banks, student PDF chat, agent telemetry, and offline fallback")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
-# Generate a unique thread_id for this user (persists across reruns)
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = str(random.randint(100000, 999999))
+if "document_id" not in st.session_state:
+    st.session_state.document_id = None
 
 
-st.title("🧠 Chimera AI Assistant")
-
-# Display all previous messages from session state
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+def upload_file(endpoint: str, uploaded_file, data: dict | None = None):
+    files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+    return requests.post(f"{API_ROOT}{endpoint}", files=files, data=data or {}, timeout=120)
 
 
+with st.sidebar:
+    st.subheader("Document context")
+    if st.session_state.document_id:
+        st.success(f"PDF active: {st.session_state.document_id[:8]}…")
+        if st.button("Clear PDF context"):
+            st.session_state.document_id = None
+            st.rerun()
+    else:
+        st.info("No student PDF selected")
 
-# Capture user input
-user_input = st.chat_input("Ask Chimera something...")
+teacher_tab, student_tab, chat_tab = st.tabs(["Teacher question bank", "Student PDF", "Chat"])
 
-if user_input:
-    status_placeholder = st.empty()  # Will display real-time server thoughts
-    text_placeholder = st.empty()    # Will handle main markdown generation
-    # Append user message to history
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    
-    # Display user message immediately
-    with st.chat_message("user"):
-        st.write(user_input)
-    
-    # Create placeholder for assistant response
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
-        
-        try:
-            # Make streaming HTTP request to the backend
-            response = requests.post(
-                "http://localhost:8000/api/chat/stream",
-                json={
-                    "prompt": user_input,
-                    "thread_id": st.session_state.thread_id
-                },
-                stream=True,
-                timeout=300
-            )
-            
-            if response.status_code == 200:
-                # Stream tokens as they arrive
-                for token in response.iter_content(decode_unicode=True):
-                    if token:  # Skip empty tokens
-                        # Check if token begins with system prefix
-                        if token.startswith("⚡STATUS:"):
-                            # Strip the prefix and display in status box
-                            clean_status = token.replace("⚡STATUS:", "", 1)
-                            status_placeholder.info(f"🤖 {clean_status}")
-                        else:
-                            # Treat as standard conversational content
-                            full_response += token
-                            text_placeholder.markdown(full_response)
-                
-                # After streaming finishes, append complete response to history
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": full_response
-                })
-                
-            else:
-                error_msg = f"Error: {response.status_code} - {response.text}"
-                message_placeholder.error(error_msg)
-                st.stop()
-                
-        except requests.exceptions.ConnectionError:
-            error_msg = "❌ Cannot connect to backend server at http://localhost:8000"
-            message_placeholder.error(error_msg)
-            st.stop()
-            
-        except requests.exceptions.Timeout:
-            error_msg = "⏱️ Request timed out. The backend server took too long to respond."
-            message_placeholder.error(error_msg)
-            st.stop()
-            
-        except Exception as e:
-            error_msg = f"⚠️ Unexpected error: {str(e)}"
-            message_placeholder.error(error_msg)
-            st.stop()
+with teacher_tab:
+    st.subheader("Upload teacher question bank")
+    st.write("Use `Q:` / `A:` entries so students can retrieve teacher-provided answers offline.")
+    teacher_file = st.file_uploader("Choose a .txt file", type=["txt"], key="teacher_file")
+    subject = st.text_input("Subject or course", key="teacher_subject")
+    if st.button("Import question bank", disabled=teacher_file is None):
+        with st.spinner("Parsing and indexing question bank…"):
+            response = upload_file("/api/teacher/question-bank", teacher_file, {"subject": subject})
+        if response.ok:
+            st.success(response.json())
+        else:
+            st.error(response.text)
+
+with student_tab:
+    st.subheader("Upload a PDF to question")
+    student_file = st.file_uploader("Choose a PDF", type=["pdf"], key="student_file")
+    if st.button("Process PDF", disabled=student_file is None):
+        with st.spinner("Extracting text and building local TF-IDF index…"):
+            response = upload_file("/api/student/document", student_file)
+        if response.ok:
+            result = response.json()
+            st.session_state.document_id = result["document_id"]
+            st.success(f"Processed {result['pages']} pages and {result['chunks']} searchable chunks.")
+        else:
+            st.error(response.text)
+
+with chat_tab:
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    prompt = st.chat_input("Ask about your PDF or the academic knowledge base…")
+    if prompt:
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            status_placeholder = st.empty()
+            answer_placeholder = st.empty()
+            full_response = ""
+            event_buffer = ""
+            payload = {
+                "prompt": prompt,
+                "thread_id": st.session_state.thread_id,
+                "document_id": st.session_state.document_id,
+            }
+            try:
+                response = requests.post(
+                    f"{API_ROOT}/api/chat/stream",
+                    json=payload,
+                    stream=True,
+                    timeout=300,
+                )
+                response.raise_for_status()
+                for chunk in response.iter_content(chunk_size=1, decode_unicode=True):
+                    if not chunk:
+                        continue
+                    event_buffer += chunk
+                    while "\n\n" in event_buffer:
+                        raw_event, event_buffer = event_buffer.split("\n\n", 1)
+                        data = "\n".join(
+                            line[5:].lstrip()
+                            for line in raw_event.splitlines()
+                            if line.startswith("data:")
+                        )
+                        if not data:
+                            continue
+                        try:
+                            event = json.loads(data)
+                        except json.JSONDecodeError:
+                            event = {"type": "token", "content": data}
+                        event_type = event.get("type", "token")
+                        content = event.get("content", "")
+                        if event_type == "status":
+                            status_placeholder.info(f"🤖 {content}")
+                        elif event_type == "error":
+                            status_placeholder.error(content)
+                        elif content:
+                            full_response += content
+                            answer_placeholder.markdown(full_response + "▌")
+                answer_placeholder.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+            except requests.RequestException as exc:
+                status_placeholder.error(f"Could not reach Chimera backend: {exc}")

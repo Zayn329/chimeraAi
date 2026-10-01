@@ -1,7 +1,7 @@
 import dotenv
 from langgraph.graph import MessagesState, StateGraph, END, START
 from langgraph.prebuilt import ToolNode
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage
 from chimera_backend.tools import search_pyqs
 
@@ -10,7 +10,7 @@ dotenv.load_dotenv()
 class Agentstate(MessagesState):
     pass
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
+llm = ChatGroq(model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"), temperature=0.2)
 my_tools = [search_pyqs]
 llm_tools = llm.bind_tools(my_tools)
 

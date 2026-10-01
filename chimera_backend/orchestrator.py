@@ -1,4 +1,4 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 from pydantic import BaseModel, Field
@@ -7,11 +7,25 @@ from langchain_core.messages import SystemMessage
 from pymongo import MongoClient
 import os
 from langgraph.checkpoint.mongodb import MongoDBSaver
+from langgraph.checkpoint.memory import MemorySaver
+from dotenv import load_dotenv
 # Import your tools
 from chimera_backend.tools import deep_search, search_pyqs, search_rulebook, search_syllabus, search_reference_books, web_search
-mongo_client = MongoClient(os.getenv("MONGODB_URI"))
-# Note: Gemini 1.5 Flash is the correct model name (3.5 doesn't exist yet!)
-llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.2)
+load_dotenv()
+
+mongo_uri = os.getenv("MONGODB_URI")
+checkpointer = MemorySaver()
+if mongo_uri:
+    try:
+        mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=3000)
+        mongo_client.admin.command("ping")
+        checkpointer = MongoDBSaver(mongo_client)
+        print("✅ MongoDB checkpointing enabled")
+    except Exception as exc:
+        print(f"⚠️ MongoDB unavailable; using in-memory checkpointing: {exc}")
+else:
+    print("⚠️ MONGODB_URI not configured; using in-memory checkpointing")
+llm = ChatGroq(model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"), temperature=0.2)
 
 class SwarmState(MessagesState):
     active_worker: str
@@ -110,5 +124,4 @@ workflow.add_conditional_edges("strategist", route_after_agent, {"tools": "tools
 workflow.add_conditional_edges("tools", route_after_tools)
 
 # Final Compilation
-cloud_checkpointer = MongoDBSaver(mongo_client)
-master_swarm = workflow.compile(checkpointer=cloud_checkpointer)
+master_swarm = workflow.compile(checkpointer=checkpointer)
