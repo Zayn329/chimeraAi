@@ -59,13 +59,13 @@ workflow.add_edge("tutor", END)
 workflow.add_edge("strategist", END)
 workflow.add_edge("bureaucrat", END)
 memory = MemorySaver()
-app = workflow.compile(checkpointer=memory)
+master_router_app = workflow.compile(checkpointer=memory)
 
 async def main():
     prompt = "how much marks are there for attendance in operating systems cours?"
     print("🚀 Triggering the Master Router Agentic Loop...")
     
-    final_state = await app.ainvoke({"messages": [prompt]})
+    final_state = await master_router_app.ainvoke({"messages": [prompt]})
     
     print("\n🎓 FINAL ROUTING DECISION & RESPONSE:\n")
     
