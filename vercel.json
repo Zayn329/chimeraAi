@@ -1,4 +1,5 @@
 {
+  "installCommand": "npm install --prefix chimera-frontend",
   "buildCommand": "npm run build --prefix chimera-frontend",
   "outputDirectory": "chimera-frontend/dist",
   "framework": "vite",
