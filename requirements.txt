@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+langchain-core
+langchain-groq
+langgraph
+langgraph-checkpoint
+langchain
+langchain-community
+python-dotenv
+sse-starlette
+requests
+scikit-learn
+pypdf
+python-multipart
