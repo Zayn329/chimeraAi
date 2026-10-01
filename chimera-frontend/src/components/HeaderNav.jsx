@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, ArrowRight, LogIn, LogOut, MessageSquare, UploadCloud, Activity, Home } from "lucide-react";
+import { Menu, LogIn, LogOut, MessageSquare, UploadCloud, Activity, Home, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   Sheet,
   SheetContent,
@@ -29,20 +30,27 @@ export function HeaderNav() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#F9FAFB]/90 backdrop-blur-md border-b border-[#E5E7EB]">
+    <header className="sticky top-0 z-40 w-full bg-[#DCE8F6]/90 backdrop-blur-md border-b border-[#B9D5F7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand Logo */}
+        {/* Brand Logo with Motion Hover Micro-interaction */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center text-white font-bold text-lg shadow-xs group-hover:bg-[#4338CA] transition-colors">
+          <motion.div
+            whileHover={{ scale: 1.08, rotate: 3 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-9 h-9 rounded-xl bg-[#333D4E] flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-slate-400/20 group-hover:bg-[#252D3A] transition-colors"
+          >
             C
-          </div>
-          <span className="font-semibold text-lg text-[#1F2937] tracking-tight">
+          </motion.div>
+          <span className="font-bold text-lg text-[#333D4E] tracking-tight group-hover:text-[#5B9EE1] transition-colors flex items-center gap-1.5">
             Chimera AI
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#5B9EE1]/20 text-[#333D4E] border border-[#5B9EE1]/40">
+              v1.0
+            </span>
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 text-sm font-medium text-[#6B7280]">
+        {/* Desktop Navigation with Animated Active Pill Indicator */}
+        <nav className="hidden md:flex items-center gap-1 text-sm font-semibold text-[#5A6A80]">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.href;
@@ -50,42 +58,59 @@ export function HeaderNav() {
               <Link
                 key={link.label}
                 to={link.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors ${
-                  isActive
-                    ? "text-[#4F46E5] bg-[#4F46E5]/10 font-semibold"
-                    : "hover:text-[#1F2937] hover:bg-gray-100/60"
-                }`}
+                className="relative px-3.5 py-2 rounded-xl transition-colors flex items-center gap-2"
               >
-                <Icon className="w-4 h-4" />
-                {link.label}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeNavTab"
+                    className="absolute inset-0 bg-[#333D4E] rounded-xl shadow-xs"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <Icon
+                  className={`w-4 h-4 relative z-10 transition-colors ${
+                    isActive ? "text-white" : "text-[#5A6A80] group-hover:text-[#333D4E]"
+                  }`}
+                />
+                <span
+                  className={`relative z-10 transition-colors ${
+                    isActive ? "text-white font-bold" : "hover:text-[#333D4E]"
+                  }`}
+                >
+                  {link.label}
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Desktop CTA / Auth */}
+        {/* Desktop CTA / Auth with Motion Scale Micro-interactions */}
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
-              <span className="text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-full">
+              <span className="text-xs font-semibold text-[#333D4E] bg-white border border-[#B9D5F7] px-3 py-1 rounded-full shadow-xs">
                 {user.email || user.username}
               </span>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={handleLogout}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#B9D5F7] bg-white text-[#333D4E] text-sm font-semibold hover:bg-slate-50 transition-colors shadow-xs"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 text-[#E54D4D]" />
                 Logout
-              </button>
+              </motion.button>
             </div>
           ) : (
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#4F46E5] text-white text-sm font-medium hover:bg-[#4338CA] transition-colors shadow-xs"
-            >
-              <LogIn className="w-4 h-4" />
-              Sign In
-            </Link>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#333D4E] text-white text-sm font-semibold hover:bg-[#252D3A] transition-colors shadow-md shadow-slate-400/20"
+              >
+                <LogIn className="w-4 h-4 text-[#5B9EE1]" />
+                Sign In
+              </Link>
+            </motion.div>
           )}
         </div>
 
