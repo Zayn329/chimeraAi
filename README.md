@@ -19,7 +19,7 @@
 - [📈 System Diagrams (Mermaid.js)](#-system-diagrams-mermaidjs)
   - [1. End-to-End User Query Sequence](#1-end-to-end-user-query-sequence)
   - [2. LangGraph Supervisor Swarm Decision Tree](#2-langgraph-supervisor-swarm-decision-tree)
-  - [3. SSE Token Streaming & Semantic Cache Interception](#3-sse-token-streaming--semantic-cache-interception)
+  - [3. SSE Token Streaming & Semantic Cache Lifecycle](#3-sse-token-streaming--semantic-cache-lifecycle)
 - [🖥️ Frontend Pages & Interactive Routes](#%EF%B8%8F-frontend-pages--interactive-routes)
 - [⚡ Real-Time SSE Protocol & Event Traps](#-real-time-sse-protocol--event-traps)
 - [📄 Vector Data Ingestion & RAG Pipeline](#-vector-data-ingestion--rag-pipeline)
@@ -33,7 +33,7 @@
 
 ## 🌟 Overview
 
-**Chimera AI** is a state-of-the-art multi-agent academic ecosystem designed to assist students and faculty. Unlike monolithic LLM wrappers, Chimera employs a **Supervisor Router** built on **LangGraph** that dynamically evaluates user intent in real time and delegates execution to specialized domain agents:
+**Chimera AI** is a multi-agent academic ecosystem designed to assist students and faculty. Chimera employs a **Supervisor Router** built on **LangGraph** that dynamically evaluates user intent in real time and delegates execution to specialized domain agents:
 
 * 🎓 **Syllabus Tutor Agent**: Explains course concepts, syllabus modules, and academic literature using Pinecone RAG retrieval.
 * 📋 **Policy Agent**: Answers formal university policy, grading schemes, attendance requirements, and administrative rules.
@@ -48,46 +48,38 @@
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Student as 👤 Student / Faculty
-    participant React as ⚛️ React 19 Frontend
-    participant Gateway as 🌐 API Gateway (Port 3000)
-    participant FastAPI as ⚡ FastAPI Backend (Port 8000)
-    participant Cache as ⚡ Semantic Cache
-    participant Router as 🧠 LangGraph Supervisor
-    participant Agent as 🤖 Active Agent
-    participant VectorDB as 🌲 Pinecone Vector DB
+    actor Student as Student / Faculty
+    participant React as React 19 Frontend
+    participant Gateway as API Gateway (Port 3000)
+    participant FastAPI as FastAPI Backend (Port 8000)
+    participant Cache as Semantic Cache
+    participant Router as LangGraph Supervisor
+    participant Agent as Active Agent
+    participant VectorDB as Pinecone Vector DB
 
     Student->>React: Enters Query ("Explain Page Replacement Algorithms")
     React->>Gateway: POST /api/chat/stream { prompt, thread_id }
     Gateway->>FastAPI: Forward HTTP Stream Request
-
-    rect rgb(240, 248, 255)
-        note right of FastAPI: 🛑 Gate 1: Check Semantic Cache
-        FastAPI->>Cache: Check Cosine Similarity (>0.92)
-        alt Cache Hit
-            Cache-->>FastAPI: Return Cached Response
-            FastAPI-->>React: Stream SSE Mock Tokens
-        else Cache Miss
-            FastAPI->>Router: Invoke LangGraph Swarm
+    FastAPI->>Cache: Check Cosine Similarity (>0.92)
+    alt Cache Hit
+        Cache-->>FastAPI: Return Cached Response
+        FastAPI-->>React: Stream SSE Mock Tokens
+    else Cache Miss
+        FastAPI->>Router: Invoke LangGraph Swarm
+        Router->>Router: Evaluate Intent (Tutor vs Policy vs Strategist)
+        Router-->>FastAPI: Emit Event "on_node_start: [tutor]"
+        FastAPI-->>React: SSE Event: status ("Swarm engaging Syllabus Tutor...")
+        React-->>Student: Update Telemetry Node & Badge Highlight
+        Agent->>VectorDB: Semantic Hybrid Vector Search
+        VectorDB-->>Agent: Top 3 Matching Chunks
+        loop Real-time Token Generation
+            Agent-->>FastAPI: Emit Chunk
+            FastAPI-->>React: SSE Event: token
+            React-->>Student: Render Token Character-by-Character
         end
+        FastAPI->>Cache: Update Cache with Synthesized Response
+        FastAPI-->>React: SSE Event: done
     end
-
-    Router->>Router: Evaluate Intent (Tutor vs Policy vs Strategist)
-    Router-->>FastAPI: Emit Event "on_node_start: [tutor]"
-    FastAPI-->>React: SSE Event: status ("Swarm engaging Syllabus Tutor...")
-    React-->>Student: Update Telemetry Node & Badge Highlight
-
-    Agent->>VectorDB: Semantic Hybrid Vector Search
-    VectorDB-->>Agent: Top 3 Matching Chunks
-
-    loop Real-time Token Generation
-        Agent-->>FastAPI: Emit Chunk
-        FastAPI-->>React: SSE Event: token ("data: {'type': 'token', 'content': '...'}")
-        React-->>Student: Render Token Token-by-Token
-    end
-
-    FastAPI->>Cache: Update Cache with Synthesized Response
-    FastAPI-->>React: SSE Event: done
 ```
 
 ---
@@ -96,67 +88,45 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[📥 Incoming Query] --> B{⚡ Semantic Cache Check}
-    B -- Match Similarity >= 0.92 --> C[⚡ Instant Cache Response]
-    B -- Cache Miss --> D[🧠 LangGraph Supervisor Router]
+    A[Incoming Query] --> B{Semantic Cache Check}
+    B -- Similarity >= 0.92 --> C[Instant Cache Response]
+    B -- Cache Miss --> D[LangGraph Supervisor Router]
 
     D --> E{Evaluate Query Intent}
 
-    E -- Concept / Explanation --> F[🎓 Syllabus Tutor Agent]
-    E -- Attendance / Marks / Rules --> G[📋 Policy Agent]
-    E -- Exam Prep / Question Bank --> H[🧠 Exam Strategist Agent]
+    E -- Concept / Explanation --> F[Syllabus Tutor Agent]
+    E -- Attendance / Rules --> G[Policy Agent]
+    E -- Exam Prep / Question Bank --> H[Exam Strategist Agent]
 
-    F --> I[🌲 Pinecone PDF Vector Search]
-    G --> J[📄 Institutional Policy Rules]
-    H --> K[📑 Question Bank Vector DB]
+    F --> I[Pinecone PDF Vector Search]
+    G --> J[Institutional Policy Rules]
+    H --> K[Question Bank Vector DB]
 
-    I --> L[✍️ Synthesize Final Response]
+    I --> L[Synthesize Final Response]
     J --> L
     K --> L
 
-    L --> M[💾 Save to Semantic Cache]
-    L --> N[📡 Stream SSE Tokens to Client]
-
-    classDef router fill:#333D4E,stroke:#5B9EE1,stroke-width:2px,color:#fff;
-    classDef agent fill:#5B9EE1,stroke:#333D4E,stroke-width:2px,color:#fff;
-    classDef cache fill:#10B981,stroke:#047857,stroke-width:2px,color:#fff;
-    class A,D router;
-    class F,G,H agent;
-    class C,M cache;
+    L --> M[Save to Semantic Cache]
+    L --> N[Stream SSE Tokens to Client]
 ```
 
 ---
 
-### 3. SSE Token Streaming & Semantic Cache Interception
+### 3. SSE Token Streaming & Semantic Cache Lifecycle
 
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
-    Idle --> Ingress: User sends message via /chat
-
-    state Ingress {
-        [*] --> CircuitBreakerCheck
-        CircuitBreakerCheck --> SemanticCacheCheck: Circuit CLOSED (Healthy)
-        CircuitBreakerCheck --> OfflineFallback: Circuit OPEN (Rate Limited)
-
-        SemanticCacheCheck --> FastStream: Cache Hit (>0.92)
-        SemanticCacheCheck --> LangGraphPipeline: Cache Miss
-    }
-
-    state FastStream {
-        [*] --> MockTokenGenerator
-        MockTokenGenerator --> SSESent: Chunked word streams
-    }
-
-    state LangGraphPipeline {
-        [*] --> NodeTelemetry: Emit on_node_start event
-        NodeTelemetry --> ToolExecution: Emit on_tool_start event
-        ToolExecution --> TokenStream: Emit on_chat_model_stream
-    }
-
-    SSESent --> RenderUI: Frontend updates UI
-    TokenStream --> RenderUI: Frontend updates UI
-    RenderUI --> [*]: Stream finished
+    Idle --> Ingress: User query received
+    Ingress --> SemanticCache: Check similarity
+    SemanticCache --> FastStream: Cache hit
+    SemanticCache --> LangGraphPipeline: Cache miss
+    LangGraphPipeline --> NodeTelemetry: Emit on_node_start
+    NodeTelemetry --> ToolExecution: Emit on_tool_start
+    ToolExecution --> TokenStream: Emit on_chat_model_stream
+    FastStream --> RenderUI: Stream cached words
+    TokenStream --> RenderUI: Stream live tokens
+    RenderUI --> [*]
 ```
 
 ---
