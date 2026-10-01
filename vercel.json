@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd chimera-frontend && npm run build",
+  "buildCommand": "npm run build --prefix chimera-frontend",
   "outputDirectory": "chimera-frontend/dist",
   "framework": "vite",
   "rewrites": [
