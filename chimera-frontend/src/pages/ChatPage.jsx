@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { HeaderNav } from "@/components/HeaderNav";
+import { API_BASE_URL } from "@/lib/api";
 import {
   Send,
   Bot,
@@ -111,8 +112,7 @@ export function ChatPage() {
     setMessages((prev) => [...prev, initialAssistantMsg]);
 
     try {
-      // Determine gateway URL or fallback to FastAPI server
-      const backendUrl = "http://localhost:8000/api/chat/stream";
+      const backendUrl = `${API_BASE_URL}/api/chat/stream`;
 
       const response = await fetch(backendUrl, {
         method: "POST",

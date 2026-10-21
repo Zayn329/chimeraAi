@@ -18,10 +18,16 @@ app = FastAPI(title="Chimera Swarm API", description="Stateless Microservice wit
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/")
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "chimera-backend"}
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 

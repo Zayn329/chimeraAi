@@ -17,6 +17,7 @@ langgraph-checkpoint-mongodb==0.4.0
 pinecone==7.3.0
 python-dotenv==1.2.2
 sse-starlette==3.4.4
-requests==2.33.1scikit-learn
+requests==2.33.1
+scikit-learn
 pypdf
 python-multipart

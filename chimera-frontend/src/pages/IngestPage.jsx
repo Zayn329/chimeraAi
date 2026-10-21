@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { HeaderNav } from "@/components/HeaderNav";
+import { API_BASE_URL } from "@/lib/api";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import {
   UploadCloud,
@@ -41,7 +42,7 @@ export function IngestPage() {
     formData.append("file", studentFile);
 
     try {
-      const res = await fetch("http://localhost:8000/api/student/document", {
+      const res = await fetch(`${API_BASE_URL}/api/student/document`, {
         method: "POST",
         body: formData,
       });
@@ -81,7 +82,7 @@ export function IngestPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/teacher/question-bank?subject=${encodeURIComponent(
+        `${API_BASE_URL}/api/teacher/question-bank?subject=${encodeURIComponent(
           subject
         )}`,
         {
