@@ -6,6 +6,8 @@ from llama_index.core import Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from dotenv import load_dotenv
 
+from pathlib import Path
+load_dotenv(Path(__file__).resolve().parent / ".env")
 load_dotenv()
 
 # Global Framework Embedding Configuration

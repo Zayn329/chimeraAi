@@ -19,6 +19,15 @@ from llama_index.core.postprocessor import SentenceTransformerRerank
 from llama_index.vector_stores.pinecone import PineconeVectorStore
 from pinecone import Pinecone
 
+import sys
+from pathlib import Path
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+load_dotenv(Path(__file__).resolve().parent / ".env")
 load_dotenv()
 
 # Global Embedding Configuration

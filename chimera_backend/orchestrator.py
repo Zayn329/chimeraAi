@@ -11,6 +11,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from dotenv import load_dotenv
 # Import your tools
 from chimera_backend.tools import deep_search, search_pyqs, search_rulebook, search_syllabus, search_reference_books, web_search
+from pathlib import Path
+load_dotenv(Path(__file__).resolve().parent / ".env")
 load_dotenv()
 
 mongo_uri = os.getenv("MONGODB_URI")

@@ -1,5 +1,18 @@
 import asyncio
 import json
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
+load_dotenv()
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
