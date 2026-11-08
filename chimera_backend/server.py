@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
@@ -13,7 +14,7 @@ if sys.platform == "win32":
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 load_dotenv()
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -45,21 +46,37 @@ def health_check():
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 
-def local_context(prompt: str, document_id: str | None = None) -> tuple[str, str]:
-    """Return local retrieval context for the offline path."""
-    if document_id:
-        matches = offline_search("student_documents", prompt, filters={"document_id": document_id})
-    else:
+async def retrieve_document_context(prompt: str, document_id: str | None = None) -> tuple[str, str]:
+    """Retrieves document context attempting Pinecone vector DB first, with offline TF-IDF fallback."""
+    if not document_id:
         matches = offline_search("teacher_question_bank", prompt)
+        if not matches:
+            return "No local matching context was found.", "offline search"
+        lines = [f"{m['text']}\nAnswer: {m.get('answer', '')}" for m in matches]
+        return "\n\n".join(lines), "TF-IDF retrieval"
+
+    # Step 1: Attempt Pinecone Vector Search on student_documents namespace
+    if os.getenv("PINECONE_API_KEY"):
+        try:
+            from chimera_backend.tools import search_uploaded_document
+            pinecone_res = await search_uploaded_document.ainvoke({"query": prompt, "document_id": document_id})
+            if pinecone_res and not pinecone_res.startswith("SYSTEM ALERT") and not pinecone_res.startswith("Error"):
+                return pinecone_res, "Pinecone Cloud Vector DB"
+        except Exception as exc:
+            print(f"⚠️ Pinecone retrieval fallback engaged: {exc}")
+
+    # Step 2: Fallback to local TF-IDF inverted index
+    matches = offline_search("student_documents", prompt, filters={"document_id": document_id})
     if not matches:
-        return "No local matching context was found.", "offline search"
+        return "No local matching context was found.", "offline TF-IDF"
 
     lines = []
     for match in matches:
         answer = match.get("answer")
         location = f" (page {match['page_number']})" if match.get("page_number") else ""
         lines.append(f"{match['text']}{location}" + (f"\nAnswer: {answer}" if answer else ""))
-    return "\n\n".join(lines), "TF-IDF retrieval"
+    return "\n\n".join(lines), "Offline TF-IDF retrieval"
+
 
 class SwarmRequest(BaseModel):
     prompt: str
@@ -107,14 +124,17 @@ async def upload_question_bank(
 
 
 @app.post("/api/student/document")
-async def upload_student_document(file: UploadFile = File(...)):
+async def upload_student_document(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
+):
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Upload a PDF document.")
     content = await file.read()
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="PDF is too large.")
     try:
-        return ingest_pdf(file.filename, content)
+        return ingest_pdf(file.filename, content, background_tasks=background_tasks)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -151,13 +171,13 @@ async def chat_endpoint(request: SwarmRequest):
         print("⚡ [CACHE HIT] Direct match found. Short-circuiting Swarm execution!")
         return SwarmResponse(final_response=cached_answer, status="success")
 
-#cache miss -> invoke the master swarm    
+    # Cache miss -> invoke the master swarm
     try:
         print("❌ [CACHE MISS] Routing execution context down to LangGraph Swarm...")
         prompt = request.prompt
         if request.document_id:
-            context, _ = local_context(request.prompt, request.document_id)
-            prompt = f"Answer using this uploaded PDF context:\n{context}\n\nQuestion: {request.prompt}"
+            context, source_label = await retrieve_document_context(request.prompt, request.document_id)
+            prompt = f"Answer using this uploaded PDF context (via {source_label}):\n{context}\n\nQuestion: {request.prompt}"
         final_state = await master_swarm.ainvoke({"messages": [("user", prompt)]}, config=config)
         response_text = final_state["messages"][-1].content
         
@@ -168,7 +188,7 @@ async def chat_endpoint(request: SwarmRequest):
         
     except Exception as e:
         global_circuit_breaker.record_failure()
-        context, mode = local_context(request.prompt, request.document_id)
+        context, mode = await retrieve_document_context(request.prompt, request.document_id)
         return SwarmResponse(
             final_response=f"[{mode} fallback]\n\n{context}",
             status="offline_fallback",
@@ -186,7 +206,7 @@ async def stream_chat_endpoint(request: SwarmRequest):
         if fallback:
             msg = f"⚡STATUS: API Rate Limit hit. Engaging local zero-cost backup brain...\n{fallback}"
         else:
-            context, mode = local_context(request.prompt, request.document_id)
+            context, mode = await retrieve_document_context(request.prompt, request.document_id)
             msg = f"⚡STATUS: API unavailable. Using {mode}.\n{context}"
         async def fallback_events():
             yield sse_event("status", msg)
@@ -220,8 +240,9 @@ async def stream_chat_endpoint(request: SwarmRequest):
         try:
             effective_prompt = prompt
             if request.document_id:
-                context, _ = local_context(prompt, request.document_id)
-                effective_prompt = f"Answer using this uploaded PDF context:\n{context}\n\nQuestion: {prompt}"
+                context, source_label = await retrieve_document_context(prompt, request.document_id)
+                yield sse_event("status", f"Retrieved context via: [{source_label}]...")
+                effective_prompt = f"Answer using this uploaded PDF context (via {source_label}):\n{context}\n\nQuestion: {prompt}"
             async for event in master_swarm.astream_events(
                 {"messages": [("user", effective_prompt)]}, 
                 version="v2", 
@@ -267,7 +288,7 @@ async def stream_chat_endpoint(request: SwarmRequest):
         except Exception as e:
             global_circuit_breaker.record_failure()
             yield sse_event("status", "Rate limit encountered. Logging fault to Circuit Breaker...")
-            context, mode = local_context(prompt, request.document_id)
+            context, mode = await retrieve_document_context(prompt, request.document_id)
             yield sse_event("status", f"Switching to {mode}.")
             yield sse_event("token", f"[{mode} fallback]\n\n{context}")
     
