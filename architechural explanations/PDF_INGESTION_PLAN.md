@@ -1,6 +1,6 @@
-# 🗺️ PDF Ingestion to Vector DB: Dependency Map & Implementation Plan
+# 🗺️ PDF Ingestion to Vector DB: Dependency Map & Hardened Implementation Plan
 
-This document establishes the **Dependency Map** and step-by-step **Implementation Plan** to connect the PDF upload pipeline directly to the Pinecone Vector Database (`chimera-brain`), replacing/supplementing the current local-only TF-IDF offline index.
+This document establishes the **Dependency Map** and step-by-step **Implementation Plan** to connect the PDF upload pipeline directly to the Pinecone Vector Database (`chimera-brain`), including concrete, production-grade resolutions for latency, multi-agent integration, quota limits, and fallback resilience.
 
 ---
 
@@ -22,7 +22,7 @@ graph TD
 
     subgraph FASTAPI["FastAPI Backend Layer (chimera_backend)"]
         Server["server.py\n(@app.post('/api/student/document'))\n(@app.post('/api/chat/stream'))"]
-        DocManager["document_manager.py\n(ingest_pdf)"]
+        DocManager["document_manager.py\n(ingest_pdf & bg_vectorize_task)"]
         Tools["tools.py\n(Settings.embed_model, Pinecone connection)"]
         OfflineRetriever["offline_retriever.py\n(Local TF-IDF fallback)"]
     end
@@ -36,7 +36,7 @@ graph TD
     end
 
     subgraph CLOUD["Cloud & Persistent Infrastructure"]
-        PineconeIndex[("Pinecone Cloud Index: chimera-brain\nNamespace: student_documents\nMetadata: document_id, page_number, filename")]
+        PineconeIndex[("Pinecone Cloud Index: chimera-brain\nNamespace: student_documents\nMetadata: document_id, page_number, filename, timestamp")]
         LocalDisk["Local Disk Storage:\n- data/uploads/*.pdf\n- data/indexes/student_documents.pkl\n- data/records/student_documents.json"]
     end
 
@@ -50,7 +50,7 @@ graph TD
     DocManager --> PyPDF
     DocManager --> LocalDisk
 
-    %% New Target Flow
+    %% Target Vector Flow
     DocManager ==> Tools
     DocManager ==> LlamaPinecone
     DocManager ==> HuggingFace
@@ -65,87 +65,127 @@ graph TD
 
 ---
 
-### 2. Dependency Matrix
+## Part 2: Concrete Resolutions to Key Plan Issues
 
-| Category | Dependency / Asset | Current Role | Target Role in Vector Ingestion |
-| :--- | :--- | :--- | :--- |
-| **Frontend UI** | `IngestPage.jsx` | Submits `FormData(file)` to `/api/student/document`, displays returned `document_id`. | Unchanged; UI already receives `document_id` and has copy/chat shortcuts. |
-| **Backend Route** | `server.py` | Receives multipart upload; handles `document_id` retrieval. | Update `local_context` to query Pinecone `student_documents` namespace first with metadata filtering on `document_id`. |
-| **Ingestion Engine**| `document_manager.py` | Extracts text with `pypdf`, calls `offline_retriever.add_records()`. | Transform into hybrid pipeline: generate text chunks -> instantiate `PineconeVectorStore(namespace="student_documents")` -> embed & upsert to Pinecone index with metadata. |
-| **Cloud Vector DB**| Pinecone (`chimera-brain`)| Used by static tools (`syllabi`, `rule_books`, etc.) in `tools.py`. | Add dedicated dynamic namespace `student_documents` where uploaded chunks are indexed with `{ document_id, filename, page_number }`. |
-| **Embedding Engine**| `HuggingFaceEmbedding` | Initialized in `tools.py` (`all-MiniLM-L6-v2`, 384 dimensions). | Reuse shared embedding model from `tools.py` or `Settings.embed_model` to avoid redundant GPU/CPU memory overhead. |
-| **Local Fallback** | `offline_retriever.py`| Primary search (TF-IDF). | Retain as offline fallback if Pinecone API key is missing or network fails. |
+### Issue 1: Gateway Timeouts vs. Synchronous CPU Embedding Latency
+* **Root Cause:** Generating 50–150 dense embeddings using `sentence-transformers/all-MiniLM-L6-v2` on CPU and uploading to Pinecone takes 15–45 seconds, which risks tripping 30s HTTP gateway timeouts in reverse proxies (e.g. Railway, Express gateway, Vercel).
+* **Specific Fix (Two-Stage Instant Index + Background Upsert):**
+  1. **Immediate Local Index (Stage 1, <300ms):**
+     - Parse PDF text using `pypdf.PdfReader` and extract text chunks synchronously.
+     - Immediately persist text records to `offline_retriever` (local JSON & TF-IDF index) so the document is **instantly queryable** without blocking.
+     - Return HTTP 200 immediately to the client with:
+       ```json
+       {
+         "document_id": "doc_xyz123",
+         "filename": "lecture_01.pdf",
+         "pages": 14,
+         "chunks": 42,
+         "status": "ready",
+         "vector_indexing": "in_progress"
+       }
+       ```
+  2. **Background Vector Upsert (Stage 2 via FastAPI `BackgroundTasks`):**
+     - Dispatch an asynchronous background task `background_upsert_pdf_to_pinecone(document_id, filename, chunks)` using FastAPI's `BackgroundTasks`.
+     - Process in batches of 25 chunks with a 0.5s pause to respect free-tier Pinecone rate limits.
+     - Once complete, mark document state as `vectorized` in metadata.
 
 ---
 
-## Part 2: Implementation Plan
-
-### Phase 1: Environment & Cloud Vector Store Setup
-1. **Pinecone Index Verification & Namespace Contract:**
-   - Confirm index `chimera-brain` supports dynamic metadata filtering on `document_id`.
-   - Standardize target namespace name: `student_documents`.
-   - Define metadata schema:
-     ```json
-     {
-       "document_id": "uuid-string",
-       "filename": "operating_systems_notes.pdf",
-       "page_number": 1,
-       "source_type": "student_pdf"
-     }
-     ```
-
-### Phase 2: Ingestion Logic Refactoring (`document_manager.py`)
-1. **Implement Pinecone Vector Ingestion:**
-   - Import `PineconeVectorStore`, `StorageContext`, `VectorStoreIndex`, and `Document` from `llama_index`.
-   - Reuse embedding configuration from `chimera_backend.tools` (`Settings.embed_model`).
-   - Create helper `ingest_pdf_to_pinecone(document_id: str, filename: str, records: list[dict])`:
-     - Convert parsed chunks into LlamaIndex `Document` instances with text and metadata (`document_id`, `filename`, `page_number`).
-     - Initialize `PineconeVectorStore(pinecone_index=pinecone_index, namespace="student_documents")`.
-     - Ingest documents in batches (e.g. 50 chunks per batch) into `chimera-brain`.
-2. **Implement Dual-Write Fault Tolerance:**
-   - Wrap Pinecone upload in a `try...except` block:
-     - On success: Write to Pinecone, and optionally update local TF-IDF cache.
-     - On Pinecone error (e.g. rate limit, invalid API key, offline): Log warning, fallback cleanly to `offline_retriever.add_records()`, and flag `storage_mode: "offline_tfidf"`.
-   - Update return JSON payload:
-     ```json
-     {
-       "document_id": "...",
-       "filename": "...",
-       "pages": 14,
-       "chunks": 42,
-       "vector_store": "pinecone",
-       "namespace": "student_documents"
-     }
-     ```
-
-### Phase 3: Query & Retrieval Pipeline Updates (`server.py`)
-1. **Dynamic Vector Document Retriever:**
-   - Create a dedicated retriever function in `tools.py` or `server.py`:
+### Issue 2: Multi-Agent Swarm Routing vs. Static Prompt Injection
+* **Root Cause:** In the current `server.py`, if a `document_id` is passed, it directly injects raw context into the prompt:
+  ```python
+  effective_prompt = f"Answer using this uploaded PDF context:\n{context}\n\nQuestion: {prompt}"
+  ```
+  This bypasses the dynamic multi-agent supervisor and prevents tools from doing iterative research.
+* **Specific Fix (Hybrid Scoped Context + Dedicated Agent Tool):**
+  1. **Add a Dedicated LangChain Retrieval Tool in `tools.py`:**
      ```python
-     async def retrieve_student_document_context(prompt: str, document_id: str) -> tuple[str, str]:
-     ```
-   - Connect to Pinecone namespace `student_documents` with an exact metadata filter:
-     `MetadataFilters(filters=[ExactMatchFilter(key="document_id", value=document_id)])`.
-   - Query top-k matching nodes (e.g., top 4 chunks), re-rank using `GLOBAL_RERANKER`, and format context string.
-2. **Update Server Chat Endpoints:**
-   - In `server.py`, update `chat_endpoint` and `stream_chat_endpoint`:
-     - If `request.document_id` is supplied:
-       - Attempt Pinecone vector search for that `document_id`.
-       - If Pinecone returns matches, format context and mark mode as `pinecone vector search`.
-       - If Pinecone fails or returns empty, fall back to `offline_retriever.search("student_documents", prompt, filters={"document_id": document_id})`.
+     class DocumentSearchSchema(BaseModel):
+         query: str = Field(description="The specific search query to look up inside the attached PDF.")
+         document_id: str = Field(description="The unique UUID of the uploaded document.")
 
-### Phase 4: Frontend Transparency (`chimera-frontend`)
-1. **Enhance Ingestion Feedback in `IngestPage.jsx`:**
-   - Display a badge indicating whether the document was indexed in `"Pinecone Vector Cloud"` or `"Local TF-IDF Fallback"`.
-2. **Telemetry Node Activation in `TelemetryPage.jsx` / `ChatPage.jsx`:**
-   - When a document-filtered query streams, display status badge: `"Retrieving context from Pinecone namespace [student_documents]..."`.
+     @tool(args_schema=DocumentSearchSchema)
+     async def search_uploaded_document(query: str, document_id: str) -> str:
+         """Searches through the student's uploaded PDF notes or syllabus for specific questions."""
+         return await retrieve_document_context(query, document_id)
+     ```
+  2. **Bind Tool to the Tutor Agent:**
+     - Add `search_uploaded_document` to `tutor_tools` in `chimera_backend/orchestrator.py`.
+     - When the `supervisor` routes a syllabus or concept question with an attached `document_id`, the **Tutor Agent** dynamically calls `search_uploaded_document(query, document_id)`.
+  3. **Preserve Fallback for Direct Queries:**
+     - If the user provides a `document_id` but the supervisor routes to another worker (or for short-circuit caching), provide top 2 matching chunks as system context so ground truth is always preserved.
 
 ---
 
-## Part 3: Verification & Test Strategy
-1. **Unit Test Ingestion Function:**
-   - Verify that parsing a mock sample PDF produces valid LlamaIndex documents with required metadata keys.
-2. **Mocked Pinecone Test:**
-   - Test `ingest_pdf` with mock Pinecone responses to confirm dual-write and graceful fallback behaviors.
-3. **End-to-End Query Verification:**
-   - Ingest a PDF, capture returned `document_id`, submit a chat query attaching `document_id`, and verify that retrieved text chunks match the PDF content via vector similarity.
+### Issue 3: Pinecone Free-Tier Quota & Vector Lifecycle Management
+* **Root Cause:** Free-tier Pinecone starter pods limit vector count and index count. Unbounded PDF uploads could exhaust storage quotas.
+* **Specific Fix (Capping & Least-Recently-Used Eviction):**
+  1. **Upload Size & Chunk Caps:**
+     - Enforce `MAX_PDF_PAGES = 30` and `MAX_CHUNKS_PER_DOC = 60`. If a PDF exceeds 30 pages, extract the first 30 pages and log a user warning.
+  2. **Metadata Timestamping & TTL Pruning:**
+     - Attach `created_at` (UNIX epoch timestamp) to every Pinecone vector's metadata.
+     - Implement a weekly or startup prune check `cleanup_expired_vectors(namespace="student_documents", max_age_days=14)` that queries Pinecone metadata and calls `pinecone_index.delete(filter={"created_at": {"$lt": cutoff}})` to clean up abandoned documents.
+
+---
+
+### Issue 4: Pinecone Credential Validation & Dual-Write Fault Tolerance
+* **Root Cause:** If `PINECONE_API_KEY` is not configured, expired, or network unreachable, PDF uploads should not crash with a 500 internal server error.
+* **Specific Fix (Graceful Circuit-Guarded Dual Write):**
+  1. **Credential Probing:**
+     - On module load, check `bool(os.getenv("PINECONE_API_KEY"))`. If missing, log `[VectorDB] Pinecone not configured. Operating in local TF-IDF mode.`
+  2. **Resilient Ingestion Wrapper in `document_manager.py`:**
+     ```python
+     def ingest_pdf(filename: str, content: bytes, background_tasks: BackgroundTasks) -> dict:
+         document_id = str(uuid.uuid4())
+         # 1. Parse & generate chunks
+         chunks, pages = extract_pdf_chunks(content)
+
+         # 2. Synchronous local TF-IDF write (guaranteed <300ms)
+         add_records("student_documents", chunks_to_records(document_id, filename, chunks))
+
+         # 3. Queue Pinecone background task if credentials exist
+         if os.getenv("PINECONE_API_KEY"):
+             background_tasks.add_task(
+                 async_upsert_to_pinecone,
+                 document_id=document_id,
+                 filename=filename,
+                 chunks=chunks
+             )
+
+         return {
+             "document_id": document_id,
+             "filename": filename,
+             "pages": pages,
+             "chunks": len(chunks),
+             "storage_mode": "hybrid_pinecone" if os.getenv("PINECONE_API_KEY") else "local_tfidf"
+         }
+     ```
+  3. **Resilient Retrieval Fallback in `server.py`:**
+     - When querying `document_id`:
+       ```python
+       async def retrieve_document_context(query: str, document_id: str) -> tuple[str, str]:
+           # Try Pinecone first
+           if os.getenv("PINECONE_API_KEY"):
+               try:
+                   results = await search_pinecone_document(query, document_id)
+                   if results:
+                       return results, "Pinecone Vector DB"
+               except Exception as err:
+                   print(f"⚠️ Pinecone query failed ({err}); switching to local TF-IDF.")
+
+           # Offline TF-IDF fallback
+           matches = offline_search("student_documents", query, filters={"document_id": document_id})
+           return format_matches(matches), "Offline TF-IDF"
+       ```
+
+---
+
+## Part 3: Step-by-Step Code Changes Required
+
+| Step | Target File | Specific Code Action |
+| :---: | :--- | :--- |
+| **1** | `chimera_backend/document_manager.py` | Add `async_upsert_to_pinecone()`, integrate `BackgroundTasks` parameter into `ingest_pdf()`, add chunk cap (`max 60`). |
+| **2** | `chimera_backend/server.py` | Update `@app.post("/api/student/document")` to accept `background_tasks: BackgroundTasks`; update `local_context()` to query Pinecone `student_documents` with TF-IDF fallback. |
+| **3** | `chimera_backend/tools.py` | Export `search_uploaded_document` tool with `DocumentSearchSchema` metadata filter on `document_id`. |
+| **4** | `chimera_backend/orchestrator.py` | Add `search_uploaded_document` to `tutor_worker` tool bindings. |
+| **5** | `chimera-frontend/src/pages/IngestPage.jsx` | Display `storage_mode` indicator in the completion card (`Pinecone Cloud` vs `Local Index`). |
